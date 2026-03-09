@@ -1,0 +1,61 @@
+body {
+    margin: 0; background-color: #0f0f11; color: #fff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh; overflow: hidden; user-select: none;
+}
+
+.screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center; }
+.screen.active { display: flex; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Контейнер волны */
+#waveform-container { width: 80%; height: 120px; margin-bottom: 30px; }
+canvas { width: 100%; height: 100%; }
+
+.status-text { font-size: 14px; color: #8a8d93; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 40px; transition: color 0.3s; }
+.status-text.recording { color: #ff4757; text-shadow: 0 0 10px rgba(255, 71, 87, 0.4); }
+
+/* Блок кнопок */
+.controls { display: flex; align-items: center; gap: 20px; height: 100px; }
+
+/* Главная кнопка */
+.btn-main {
+    width: 70px; height: 70px; border-radius: 50%; border: none; cursor: pointer;
+    background-color: #ff4757; box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex; justify-content: center; align-items: center;
+}
+.btn-main::before {
+    content: ''; display: block; width: 24px; height: 24px;
+    background-color: white; border-radius: 50%; transition: all 0.3s;
+}
+
+/* Состояния главной кнопки */
+.btn-main.recording { background-color: #ff4757; animation: pulse 1.5s infinite; }
+.btn-main.recording::before { border-radius: 4px; width: 20px; height: 20px; /* Иконка квадрата/паузы */ }
+.btn-main.paused { background-color: #2ed573; box-shadow: 0 0 20px rgba(46, 213, 115, 0.3); }
+.btn-main.paused::before { border-radius: 50%; width: 0; height: 0; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 18px solid white; margin-left: 6px; /* Иконка Play */ background: transparent;}
+.btn-main:hover { transform: scale(1.05); }
+.btn-main:active { transform: scale(0.95); }
+
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.6); } 70% { box-shadow: 0 0 0 20px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
+
+/* Боковые кнопки (Отмена / Готово) */
+.btn-icon {
+    width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer;
+    background-color: #2f3036; color: white; font-size: 18px;
+    transition: all 0.3s; opacity: 1; transform: scale(1);
+}
+.btn-icon:hover { background-color: #3f4048; transform: scale(1.1); }
+.btn-icon.hidden { opacity: 0; transform: scale(0); pointer-events: none; width: 0; margin: 0 -10px; }
+#cancelBtn:hover { background-color: #ff4757; }
+#finishBtn:hover { background-color: #2ed573; }
+
+/* Стили для редактора */
+.editor-placeholder { width: 80%; height: 150px; background: #1a1b1e; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #555; margin-bottom: 30px; }
+.export-controls { display: flex; gap: 15px; }
+.format-select { background: #2f3036; color: white; border: none; padding: 10px 15px; border-radius: 8px; outline: none; font-size: 14px; cursor: pointer;}
+.btn-export { background: #2ed573; color: #121212; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.btn-export:hover { background: #26b360; transform: translateY(-2px); }
