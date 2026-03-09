@@ -14,13 +14,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         _recorder = new AudioRecorder();
 
-        // Когда NAudio дает новую громкость, перекидываем ее в JS
         _recorder.OnVolumeUpdate += volume =>
         {
-            // Вызываем JS через Dispatcher, т.к. NAudio работает в другом потоке
             Dispatcher.InvokeAsync(() =>
             {
-                // Отправляем JSON с громкостью
                 webView.CoreWebView2.PostWebMessageAsJson($"{{\"type\":\"volume\", \"value\":{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)}}}");
             });
         };
@@ -31,6 +28,13 @@ public partial class MainWindow : Window
     private async void InitializeWebView()
     {
         await webView.EnsureCoreWebView2Async(null);
+
+        // МАГИЯ: Мапим системную папку Temp на виртуальный хост, чтобы обойти CORS
+        webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+            "temp.local",
+            Path.GetTempPath(),
+            CoreWebView2HostResourceAccessKind.Allow);
+
         string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ui", "index.html");
         webView.CoreWebView2.Navigate(htmlPath);
         webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
@@ -42,22 +46,18 @@ public partial class MainWindow : Window
 
         switch (msg)
         {
-            case "start_rec":
-                _recorder.StartRecording();
-                break;
-            case "pause_rec":
-                _recorder.PauseRecording();
-                break;
-            case "resume_rec":
-                _recorder.ResumeRecording();
-                break;
-            case "cancel_rec":
-                _recorder.CancelRecording();
-                break;
+            case "start_rec": _recorder.StartRecording(); break;
+            case "pause_rec": _recorder.PauseRecording(); break;
+            case "resume_rec": _recorder.ResumeRecording(); break;
+            case "cancel_rec": _recorder.CancelRecording(); break;
             case "finish_rec":
                 _recorder.StopAndSave();
-                // Отправляем команду в JS, что можно открывать редактор
-                string json = $"{{\"type\":\"ready_to_cut\", \"file\":\"{_recorder.TempFilePath.Replace("\\", "\\\\")}\"}}";
+
+                // Берем имя файла и создаем "фейковый" http-адрес для JS
+                string fileName = Path.GetFileName(_recorder.TempFilePath);
+                string virtualUrl = $"http://temp.local/{fileName}";
+
+                string json = $"{{\"type\":\"ready_to_cut\", \"file\":\"{virtualUrl}\"}}";
                 webView.CoreWebView2.PostWebMessageAsJson(json);
                 break;
         }
